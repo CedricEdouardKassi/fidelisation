@@ -1,0 +1,246 @@
+{
+  "datasets": [
+    {
+      "name": "kpi_jour",
+      "displayName": "KPIs du Jour",
+      "query": "SELECT nb_clients_a_appeler, nb_contrats_j30, taux_joignabilite_moyen, ca_potentiel_en_jeu FROM streamexp.fidelisation.gold_dashboard_jour"
+    },
+    {
+      "name": "heatmap_joign",
+      "displayName": "Heatmap Joignabilité",
+      "query": "SELECT jour_semaine, CAST(heure_slot AS STRING) AS heure_label, ROUND(taux_reponse_moyen * 100, 1) AS taux_pct FROM streamexp.fidelisation.heatmap_joignabilite ORDER BY CASE jour_semaine WHEN 'Lun' THEN 1 WHEN 'Mar' THEN 2 WHEN 'Mer' THEN 3 WHEN 'Jeu' THEN 4 WHEN 'Ven' THEN 5 END, heure_slot"
+    },
+    {
+      "name": "top_clients",
+      "displayName": "Top 20 Clients à Appeler",
+      "query": "SELECT raison_sociale, segment, region, commercial_nom, ROUND(score_priorite, 3) AS score_priorite, jours_avant_echeance, ROUND(valeur_contrat_annuel) AS ca_annuel, heure_recommandee FROM streamexp.fidelisation.gold_priorites_clients WHERE a_appeler_aujourdhui = TRUE ORDER BY score_priorite DESC LIMIT 20"
+    },
+    {
+      "name": "ca_region",
+      "displayName": "CA en Jeu par Région",
+      "query": "SELECT region, ROUND(SUM(valeur_contrat_annuel) / 1000) AS ca_k_eur, COUNT(*) AS nb_clients FROM streamexp.fidelisation.gold_priorites_clients WHERE a_appeler_aujourdhui = TRUE GROUP BY region ORDER BY ca_k_eur DESC"
+    }
+  ],
+  "pages": [
+    {
+      "name": "page_operationnel",
+      "displayName": "Vue Opérationnelle du Jour",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_header",
+            "textbox_spec": "## Moteur de Fidélisation — Vue Opérationnelle du Jour\nClients prioritaires à contacter aujourd'hui, heatmap de joignabilité et CA en jeu par région."
+          },
+          "position": { "x": 0, "y": 0, "width": 6, "height": 2 }
+        },
+        {
+          "widget": {
+            "name": "w_kpi_clients",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "kpi_jour",
+                  "fields": [
+                    { "name": "nb_clients_a_appeler", "expression": "`nb_clients_a_appeler`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": { "fieldName": "nb_clients_a_appeler", "displayName": "Clients à appeler" }
+              },
+              "frame": { "showTitle": true, "title": "Clients à appeler aujourd'hui" }
+            }
+          },
+          "position": { "x": 0, "y": 2, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "w_kpi_j30",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "kpi_jour",
+                  "fields": [
+                    { "name": "nb_contrats_j30", "expression": "`nb_contrats_j30`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": { "fieldName": "nb_contrats_j30", "displayName": "Contrats J-30" }
+              },
+              "frame": { "showTitle": true, "title": "Contrats à échéance J-30" }
+            }
+          },
+          "position": { "x": 2, "y": 2, "width": 2, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "w_kpi_joign",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "kpi_jour",
+                  "fields": [
+                    { "name": "taux_joignabilite_moyen", "expression": "`taux_joignabilite_moyen`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": { "fieldName": "taux_joignabilite_moyen", "displayName": "Taux joignabilité (%)" }
+              },
+              "frame": { "showTitle": true, "title": "Taux joignabilité moyen (%)" }
+            }
+          },
+          "position": { "x": 4, "y": 2, "width": 1, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "w_kpi_ca",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "kpi_jour",
+                  "fields": [
+                    { "name": "ca_potentiel_en_jeu", "expression": "`ca_potentiel_en_jeu`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": { "fieldName": "ca_potentiel_en_jeu", "displayName": "CA en jeu (€)" }
+              },
+              "frame": { "showTitle": true, "title": "CA potentiel en jeu (€)" }
+            }
+          },
+          "position": { "x": 5, "y": 2, "width": 1, "height": 3 }
+        },
+        {
+          "widget": {
+            "name": "w_heatmap_joign",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "heatmap_joign",
+                  "fields": [
+                    { "name": "jour_semaine", "expression": "`jour_semaine`" },
+                    { "name": "heure_label",  "expression": "`heure_label`" },
+                    { "name": "taux_pct",     "expression": "`taux_pct`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x":     { "fieldName": "heure_label",  "displayName": "Heure" },
+                "y":     { "fieldName": "jour_semaine", "displayName": "Jour" },
+                "color": { "fieldName": "taux_pct",     "displayName": "Taux réponse (%)", "scale": { "type": "quantitative" } }
+              },
+              "frame": { "showTitle": true, "title": "Heatmap de Joignabilité — Taux de réponse par créneau (%)" }
+            }
+          },
+          "position": { "x": 0, "y": 5, "width": 4, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "w_ca_region",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "ca_region",
+                  "fields": [
+                    { "name": "region",     "expression": "`region`" },
+                    { "name": "ca_k_eur",   "expression": "`ca_k_eur`" },
+                    { "name": "nb_clients", "expression": "`nb_clients`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "region",   "displayName": "Région", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "ca_k_eur", "displayName": "CA (k€)", "scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "CA en Jeu par Région (k€)" }
+            }
+          },
+          "position": { "x": 4, "y": 5, "width": 2, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "w_top_clients",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "top_clients",
+                  "fields": [
+                    { "name": "raison_sociale",      "expression": "`raison_sociale`" },
+                    { "name": "segment",             "expression": "`segment`" },
+                    { "name": "region",              "expression": "`region`" },
+                    { "name": "commercial_nom",      "expression": "`commercial_nom`" },
+                    { "name": "score_priorite",      "expression": "`score_priorite`" },
+                    { "name": "jours_avant_echeance","expression": "`jours_avant_echeance`" },
+                    { "name": "ca_annuel",           "expression": "`ca_annuel`" },
+                    { "name": "heure_recommandee",   "expression": "`heure_recommandee`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  { "fieldName": "raison_sociale",       "displayName": "Client" },
+                  { "fieldName": "segment",              "displayName": "Segment" },
+                  { "fieldName": "region",               "displayName": "Région" },
+                  { "fieldName": "commercial_nom",       "displayName": "Commercial" },
+                  { "fieldName": "score_priorite",       "displayName": "Score priorité" },
+                  { "fieldName": "jours_avant_echeance", "displayName": "Jours avant échéance" },
+                  { "fieldName": "ca_annuel",            "displayName": "CA annuel (€)" },
+                  { "fieldName": "heure_recommandee",    "displayName": "Créneau recommandé" }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Top 20 Clients Prioritaires à Appeler Aujourd'hui" }
+            }
+          },
+          "position": { "x": 0, "y": 11, "width": 6, "height": 6 }
+        }
+      ]
+    }
+  ]
+}

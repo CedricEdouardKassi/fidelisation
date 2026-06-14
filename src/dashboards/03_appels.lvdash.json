@@ -1,0 +1,242 @@
+{
+  "datasets": [
+    {
+      "name": "heatmap_reel",
+      "displayName": "Heatmap Décrochés Réels",
+      "query": "SELECT jour_semaine, CAST(heure_slot AS STRING) AS heure_label, COUNT(*) AS nb_appels, SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) AS nb_decroche, ROUND(SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS taux_decroche_pct FROM streamexp.fidelisation.historique_appels WHERE jour_semaine IS NOT NULL AND heure_slot BETWEEN 9 AND 18 GROUP BY jour_semaine, heure_slot ORDER BY CASE jour_semaine WHEN 'Lun' THEN 1 WHEN 'Mar' THEN 2 WHEN 'Mer' THEN 3 WHEN 'Jeu' THEN 4 WHEN 'Ven' THEN 5 END, heure_slot"
+    },
+    {
+      "name": "heatmap_modele",
+      "displayName": "Heatmap Modèle Référence",
+      "query": "SELECT jour_semaine, CAST(heure_slot AS STRING) AS heure_label, ROUND(taux_reponse_moyen * 100, 1) AS taux_reponse_pct FROM streamexp.fidelisation.heatmap_joignabilite ORDER BY CASE jour_semaine WHEN 'Lun' THEN 1 WHEN 'Mar' THEN 2 WHEN 'Mer' THEN 3 WHEN 'Jeu' THEN 4 WHEN 'Ven' THEN 5 END, heure_slot"
+    },
+    {
+      "name": "tendance_mensuelle",
+      "displayName": "Tendance Mensuelle",
+      "query": "SELECT DATE_FORMAT(TO_DATE(date_appel), 'yyyy-MM') AS mois, COUNT(*) AS nb_appels, SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) AS nb_decroche, ROUND(SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS taux_decroche_pct FROM streamexp.fidelisation.historique_appels GROUP BY 1 ORDER BY 1"
+    },
+    {
+      "name": "perf_canal",
+      "displayName": "Performance par Canal",
+      "query": "SELECT canal, COUNT(*) AS nb_appels, SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) AS nb_decroche, ROUND(SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS taux_decroche_pct FROM streamexp.fidelisation.historique_appels GROUP BY canal ORDER BY nb_appels DESC"
+    },
+    {
+      "name": "perf_commerciaux",
+      "displayName": "Performance Commerciaux",
+      "query": "SELECT commercial_id, COUNT(*) AS nb_appels, SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) AS nb_decroche, ROUND(SUM(CASE WHEN resultat = 'décroché' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS taux_decroche_pct, ROUND(AVG(CASE WHEN resultat = 'décroché' THEN duree_secondes END), 0) AS duree_moy_decroche FROM streamexp.fidelisation.historique_appels GROUP BY commercial_id HAVING COUNT(*) >= 10 ORDER BY taux_decroche_pct DESC LIMIT 15"
+    }
+  ],
+  "pages": [
+    {
+      "name": "page_heatmaps",
+      "displayName": "Heatmaps d'Appels",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_header",
+            "textbox_spec": "## Performance des Appels — Heatmaps & Analyse\nTaux de décrochés observés vs modèle de référence, évolution mensuelle et performance par canal et commercial."
+          },
+          "position": { "x": 0, "y": 0, "width": 6, "height": 2 }
+        },
+        {
+          "widget": {
+            "name": "w_heatmap_reel",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "heatmap_reel",
+                  "fields": [
+                    { "name": "jour_semaine",      "expression": "`jour_semaine`" },
+                    { "name": "heure_label",       "expression": "`heure_label`" },
+                    { "name": "taux_decroche_pct", "expression": "`taux_decroche_pct`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x":     { "fieldName": "heure_label",       "displayName": "Heure" },
+                "y":     { "fieldName": "jour_semaine",      "displayName": "Jour" },
+                "color": { "fieldName": "taux_decroche_pct", "displayName": "Taux décroché (%)", "scale": { "type": "quantitative" } }
+              },
+              "frame": { "showTitle": true, "title": "Taux de Décrochés Observés — Données Réelles (%)" }
+            }
+          },
+          "position": { "x": 0, "y": 2, "width": 4, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "w_heatmap_modele",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "heatmap_modele",
+                  "fields": [
+                    { "name": "jour_semaine",     "expression": "`jour_semaine`" },
+                    { "name": "heure_label",      "expression": "`heure_label`" },
+                    { "name": "taux_reponse_pct", "expression": "`taux_reponse_pct`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x":     { "fieldName": "heure_label",      "displayName": "Heure" },
+                "y":     { "fieldName": "jour_semaine",     "displayName": "Jour" },
+                "color": { "fieldName": "taux_reponse_pct", "displayName": "Taux modèle (%)", "scale": { "type": "quantitative" } }
+              },
+              "frame": { "showTitle": true, "title": "Taux de Réponse Modélisé — Référence (%)" }
+            }
+          },
+          "position": { "x": 4, "y": 2, "width": 2, "height": 6 }
+        }
+      ]
+    },
+    {
+      "name": "page_performance",
+      "displayName": "Performance & Tendances",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_header_perf",
+            "textbox_spec": "## Évolution Mensuelle et Performance par Canal & Commercial"
+          },
+          "position": { "x": 0, "y": 0, "width": 6, "height": 1 }
+        },
+        {
+          "widget": {
+            "name": "w_tendance",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "tendance_mensuelle",
+                  "fields": [
+                    { "name": "mois",              "expression": "`mois`" },
+                    { "name": "nb_appels",         "expression": "`nb_appels`" },
+                    { "name": "nb_decroche",       "expression": "`nb_decroche`" },
+                    { "name": "taux_decroche_pct", "expression": "`taux_decroche_pct`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "line",
+              "encodings": {
+                "x": { "fieldName": "mois",              "displayName": "Mois" },
+                "y": [
+                  { "fieldName": "nb_appels",         "displayName": "Total appels" },
+                  { "fieldName": "nb_decroche",       "displayName": "Décrochés" },
+                  { "fieldName": "taux_decroche_pct", "displayName": "Taux (%)" }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Évolution Mensuelle — Volume d'Appels et Taux de Décrochés" }
+            }
+          },
+          "position": { "x": 0, "y": 1, "width": 6, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_canal_bar",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "perf_canal",
+                  "fields": [
+                    { "name": "canal",             "expression": "`canal`" },
+                    { "name": "nb_appels",         "expression": "`nb_appels`" },
+                    { "name": "taux_decroche_pct", "expression": "`taux_decroche_pct`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "canal",             "displayName": "Canal", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "taux_decroche_pct", "displayName": "Taux décroché (%)", "scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Taux de Décrochés par Canal de Contact (%)" }
+            }
+          },
+          "position": { "x": 0, "y": 6, "width": 3, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_canal_pie",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "perf_canal",
+                  "fields": [
+                    { "name": "canal",     "expression": "`canal`" },
+                    { "name": "nb_appels", "expression": "`nb_appels`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": { "fieldName": "nb_appels", "displayName": "Volume" },
+                "color": { "fieldName": "canal",     "displayName": "Canal" }
+              },
+              "frame": { "showTitle": true, "title": "Répartition du Volume par Canal" }
+            }
+          },
+          "position": { "x": 3, "y": 6, "width": 3, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_commerciaux",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "perf_commerciaux",
+                  "fields": [
+                    { "name": "commercial_id",       "expression": "`commercial_id`" },
+                    { "name": "nb_appels",           "expression": "`nb_appels`" },
+                    { "name": "taux_decroche_pct",   "expression": "`taux_decroche_pct`" },
+                    { "name": "duree_moy_decroche",  "expression": "`duree_moy_decroche`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "commercial_id",     "displayName": "Commercial", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "taux_decroche_pct", "displayName": "Taux décroché (%)", "scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Top 15 Commerciaux — Taux de Décrochés (≥ 10 appels)" }
+            }
+          },
+          "position": { "x": 0, "y": 11, "width": 6, "height": 5 }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "datasets": [
+    {
+      "name": "ca_segment",
+      "displayName": "CA par Segment",
+      "query": "SELECT segment, ROUND(SUM(valeur_contrat_annuel) / 1000) AS ca_k_eur, COUNT(*) AS nb_clients FROM streamexp.fidelisation.gold_priorites_clients GROUP BY segment ORDER BY ca_k_eur DESC"
+    },
+    {
+      "name": "nps_dist",
+      "displayName": "Distribution NPS",
+      "query": "SELECT CASE WHEN score_nps >= 9 THEN 'Promoteur (9-10)' WHEN score_nps >= 7 THEN 'Passif (7-8)' ELSE 'Détracteur (0-6)' END AS nps_categorie, COUNT(*) AS nb_clients, ROUND(SUM(valeur_contrat_annuel) / 1000) AS ca_k_eur FROM streamexp.fidelisation.gold_priorites_clients GROUP BY 1 ORDER BY 1"
+    },
+    {
+      "name": "echeances",
+      "displayName": "Pipeline Échéances",
+      "query": "SELECT CASE WHEN jours_avant_echeance BETWEEN 0 AND 15 THEN '1 — J-15' WHEN jours_avant_echeance BETWEEN 16 AND 30 THEN '2 — J-30' WHEN jours_avant_echeance BETWEEN 31 AND 60 THEN '3 — J-60' WHEN jours_avant_echeance BETWEEN 61 AND 90 THEN '4 — J-90' ELSE '5 — Plus de 90j' END AS fenetre_echeance, COUNT(*) AS nb_clients, ROUND(SUM(valeur_contrat_annuel) / 1000) AS ca_k_eur FROM streamexp.fidelisation.gold_priorites_clients GROUP BY 1 ORDER BY 1"
+    },
+    {
+      "name": "clients_risque",
+      "displayName": "Clients à Risque",
+      "query": "SELECT raison_sociale, segment, ROUND(valeur_contrat_annuel) AS ca_annuel, jours_avant_echeance, ROUND(taux_reponse_historique * 100, 1) AS taux_reponse_pct, ROUND(score_priorite, 3) AS score_priorite FROM streamexp.fidelisation.gold_priorites_clients WHERE jours_avant_echeance <= 60 AND taux_reponse_historique < 0.30 ORDER BY ca_annuel DESC LIMIT 25"
+    },
+    {
+      "name": "perf_commercial",
+      "displayName": "Portefeuille par Commercial",
+      "query": "SELECT commercial_nom, COUNT(*) AS nb_clients, ROUND(SUM(valeur_contrat_annuel) / 1000) AS ca_k_eur, ROUND(AVG(score_priorite), 3) AS score_moy, COUNT(CASE WHEN a_appeler_aujourdhui THEN 1 END) AS nb_a_appeler FROM streamexp.fidelisation.gold_priorites_clients GROUP BY commercial_nom ORDER BY ca_k_eur DESC LIMIT 15"
+    }
+  ],
+  "pages": [
+    {
+      "name": "page_portefeuille",
+      "displayName": "Santé du Portefeuille Client",
+      "layout": [
+        {
+          "widget": {
+            "name": "w_header",
+            "textbox_spec": "## Santé du Portefeuille Client\nVue d'ensemble du CA par segment, pipeline d'échéances contractuelles, satisfaction NPS et clients à risque."
+          },
+          "position": { "x": 0, "y": 0, "width": 6, "height": 2 }
+        },
+        {
+          "widget": {
+            "name": "w_ca_segment",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "ca_segment",
+                  "fields": [
+                    { "name": "segment",    "expression": "`segment`" },
+                    { "name": "ca_k_eur",   "expression": "`ca_k_eur`" },
+                    { "name": "nb_clients", "expression": "`nb_clients`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "segment",  "displayName": "Segment", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "ca_k_eur", "displayName": "CA total (k€)", "scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "CA Annuel Géré par Segment (k€)" }
+            }
+          },
+          "position": { "x": 0, "y": 2, "width": 4, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_nps_pie",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "nps_dist",
+                  "fields": [
+                    { "name": "nps_categorie", "expression": "`nps_categorie`" },
+                    { "name": "nb_clients",    "expression": "`nb_clients`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": { "fieldName": "nb_clients",    "displayName": "Clients" },
+                "color": { "fieldName": "nps_categorie", "displayName": "NPS" }
+              },
+              "frame": { "showTitle": true, "title": "Répartition NPS — Promoteurs / Passifs / Détracteurs" }
+            }
+          },
+          "position": { "x": 4, "y": 2, "width": 2, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_echeances_nb",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "echeances",
+                  "fields": [
+                    { "name": "fenetre_echeance", "expression": "`fenetre_echeance`" },
+                    { "name": "nb_clients",       "expression": "`nb_clients`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "fenetre_echeance", "displayName": "Fenêtre", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "nb_clients", "displayName": "Clients", "scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Pipeline d'Échéances — Nombre de Clients" }
+            }
+          },
+          "position": { "x": 0, "y": 7, "width": 3, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_echeances_ca",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "echeances",
+                  "fields": [
+                    { "name": "fenetre_echeance", "expression": "`fenetre_echeance`" },
+                    { "name": "ca_k_eur",         "expression": "`ca_k_eur`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "fenetre_echeance", "displayName": "Fenêtre", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "ca_k_eur", "displayName": "CA (k€)", "scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Pipeline d'Échéances — CA en Jeu (k€)" }
+            }
+          },
+          "position": { "x": 3, "y": 7, "width": 3, "height": 5 }
+        },
+        {
+          "widget": {
+            "name": "w_clients_risque",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "clients_risque",
+                  "fields": [
+                    { "name": "raison_sociale",       "expression": "`raison_sociale`" },
+                    { "name": "segment",              "expression": "`segment`" },
+                    { "name": "ca_annuel",            "expression": "`ca_annuel`" },
+                    { "name": "jours_avant_echeance", "expression": "`jours_avant_echeance`" },
+                    { "name": "taux_reponse_pct",     "expression": "`taux_reponse_pct`" },
+                    { "name": "score_priorite",       "expression": "`score_priorite`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  { "fieldName": "raison_sociale",       "displayName": "Client" },
+                  { "fieldName": "segment",              "displayName": "Segment" },
+                  { "fieldName": "ca_annuel",            "displayName": "CA annuel (€)" },
+                  { "fieldName": "jours_avant_echeance", "displayName": "Jours avant échéance" },
+                  { "fieldName": "taux_reponse_pct",     "displayName": "Taux réponse (%)" },
+                  { "fieldName": "score_priorite",       "displayName": "Score priorité" }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Clients à Risque — Joignabilité < 30% et Échéance ≤ 60 jours" }
+            }
+          },
+          "position": { "x": 0, "y": 12, "width": 6, "height": 6 }
+        },
+        {
+          "widget": {
+            "name": "w_perf_commercial",
+            "queries": [
+              {
+                "name": "main",
+                "query": {
+                  "dataset_name": "perf_commercial",
+                  "fields": [
+                    { "name": "commercial_nom",  "expression": "`commercial_nom`" },
+                    { "name": "ca_k_eur",        "expression": "`ca_k_eur`" },
+                    { "name": "nb_clients",      "expression": "`nb_clients`" },
+                    { "name": "nb_a_appeler",    "expression": "`nb_a_appeler`" },
+                    { "name": "score_moy",       "expression": "`score_moy`" }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "commercial_nom", "displayName": "Commercial", "scale": { "type": "categorical" } },
+                "y": [
+                  { "fieldName": "ca_k_eur",     "displayName": "CA géré (k€)",     "scale": { "type": "quantitative" } },
+                  { "fieldName": "nb_a_appeler", "displayName": "Clients à appeler","scale": { "type": "quantitative" } }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "Top 15 Commerciaux — CA Géré et Charge d'Appels" }
+            }
+          },
+          "position": { "x": 0, "y": 18, "width": 6, "height": 6 }
+        }
+      ]
+    }
+  ]
+}

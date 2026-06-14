@@ -1,0 +1,16 @@
+resources:
+  dashboards:
+    dashboard_operationnel:
+      display_name: "Fidélisation — Vue Opérationnelle du Jour"
+      file_path: ../../src/dashboards/01_operationnel.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+
+    dashboard_portefeuille:
+      display_name: "Fidélisation — Santé du Portefeuille Client"
+      file_path: ../../src/dashboards/02_portefeuille.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+
+    dashboard_appels:
+      display_name: "Fidélisation — Performance des Appels"
+      file_path: ../../src/dashboards/03_appels.lvdash.json
+      warehouse_id: ${var.warehouse_id}
