@@ -43,7 +43,7 @@ resources:
       tasks:
         - task_key: "run_tests"
           notebook_task:
-            notebook_path: ../../tests/test_scoring.py
+            notebook_path: ../../tests/integration/databricks/test_scoring_pipeline.py
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
