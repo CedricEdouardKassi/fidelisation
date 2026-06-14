@@ -52,6 +52,11 @@ resources:
             spark_version: "15.4.x-scala2.12"
             num_workers: 0
             node_type_id: "Standard_DS3_v2"
+            spark_conf:
+              spark.databricks.cluster.profile: singleNode
+              spark.master: local[*]
+            custom_tags:
+              ResourceClass: SingleNode
 
       permissions:
         - level: CAN_VIEW

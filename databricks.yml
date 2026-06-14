@@ -5,6 +5,7 @@ bundle:
   name: fidelisation
 
 include:
+  - resources/*.yml
   - resources/**/*.yml
 
 targets:
