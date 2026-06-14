@@ -122,7 +122,29 @@ for i in range(500):
         "score_initial_manuel": random.randint(1, 5)
     })
 
-df_clients = spark.createDataFrame(clients_data)
+# Définition explicite du schéma
+clients_schema = StructType([
+    StructField("client_id", StringType(), False),
+    StructField("raison_sociale", StringType(), True),
+    StructField("segment", StringType(), True),
+    StructField("ville", StringType(), True),
+    StructField("commercial_id", StringType(), True),
+    StructField("offre_actuelle", StringType(), True),
+    StructField("valeur_contrat_annuel", DoubleType(), True),
+    StructField("date_contrat", StringType(), True),
+    StructField("date_fin_contrat", StringType(), True),
+    StructField("duree_contrat_mois", IntegerType(), True),
+    StructField("renouvellement_auto", BooleanType(), True),
+    StructField("score_nps", DoubleType(), True),
+    StructField("anciennete_mois", IntegerType(), True),
+    StructField("nb_reclamations_12m", IntegerType(), True),
+    StructField("potentiel_upsell", DoubleType(), True),
+    StructField("canal_prefere", StringType(), True),
+    StructField("score_initial_manuel", IntegerType(), True)
+])
+
+df_clients = spark.createDataFrame(clients_data, schema=clients_schema)
+
 df_clients.write.mode("overwrite").saveAsTable(f"{CATALOG}.{SCHEMA}.clients")
 print(f"✅ clients: {df_clients.count()} lignes")
 df_clients.show(5, truncate=False)
