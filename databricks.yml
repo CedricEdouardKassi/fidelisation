@@ -14,9 +14,9 @@ targets:
     mode: development
     workspace:
       host: https://adb-1400176502464428.8.azuredatabricks.net
-    variables:
-      catalog: "training"
-      schema: "fidelisation_dev"
+#    variables:
+#      catalog: "streamexp"
+#      schema: "fidelisation_dev"
 
   staging:
     mode: development
