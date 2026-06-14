@@ -1,8 +1,8 @@
 -- =============================================================================
 -- COUCHE GOLD — Scoring composite, priorisation et KPIs journaliers
 -- =============================================================================
--- TABLE 1 : gold_priorites_clients  — liste scorée par commercial et région
--- TABLE 2 : gold_dashboard_jour     — KPIs agrégés pour le dashboard
+-- VUE MATÉRIALISÉE 1 : gold_priorites_clients  — liste scorée par commercial et région
+-- VUE MATÉRIALISÉE 2 : gold_dashboard_jour     — KPIs agrégés pour le dashboard
 --
 -- Formule composite (docs/scoring.md) :
 --   score_priorite = urgence×0.35 + joignabilite×0.30 + valeur×0.20 + marketing×0.15
@@ -12,7 +12,7 @@
 -- -----------------------------------------------------------------------------
 -- gold_priorites_clients
 -- -----------------------------------------------------------------------------
-CREATE OR REFRESH LIVE TABLE gold_priorites_clients
+CREATE OR REFRESH MATERIALIZED VIEW gold_priorites_clients
 COMMENT "Liste quotidienne scorée et priorisée des clients à contacter"
 AS
 
@@ -80,7 +80,7 @@ LEFT JOIN (
 -- -----------------------------------------------------------------------------
 -- gold_dashboard_jour  — 1 ligne de KPIs agrégés pour le dashboard
 -- -----------------------------------------------------------------------------
-CREATE OR REFRESH LIVE TABLE gold_dashboard_jour
+CREATE OR REFRESH MATERIALIZED VIEW gold_dashboard_jour
 COMMENT "KPIs agrégés du moteur de fidélisation pour le dashboard journalier"
 AS
 SELECT
