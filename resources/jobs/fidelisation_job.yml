@@ -1,0 +1,58 @@
+resources:
+  jobs:
+    fidelisation_job:
+      name: "[${bundle.target}] Fidélisation - Job Orchestration"
+
+      tasks:
+        - task_key: "generate_data"
+          notebook_task:
+            notebook_path: ../../src/jobs/generate_data.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+          job_cluster_key: "fidelisation_cluster"
+
+        - task_key: "run_pipeline"
+          depends_on:
+            - task_key: "generate_data"
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.fidelisation_pipeline.id}
+            full_refresh: false
+
+      job_clusters:
+        - job_cluster_key: "fidelisation_cluster"
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            num_workers: 1
+            node_type_id: "Standard_DS3_v2"
+
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: "Europe/Paris"
+
+      permissions:
+        - level: CAN_VIEW
+          group_name: "users"
+
+    test_scoring_job:
+      name: "[${bundle.target}] Fidélisation - Tests"
+
+      tasks:
+        - task_key: "run_tests"
+          notebook_task:
+            notebook_path: ../../tests/test_scoring.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+          job_cluster_key: "test_cluster"
+
+      job_clusters:
+        - job_cluster_key: "test_cluster"
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            num_workers: 0
+            node_type_id: "Standard_DS3_v2"
+
+      permissions:
+        - level: CAN_VIEW
+          group_name: "users"

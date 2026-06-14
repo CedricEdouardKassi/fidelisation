@@ -1,0 +1,32 @@
+resources:
+  pipelines:
+    fidelisation_pipeline:
+      name: "[${bundle.target}] Fidélisation - Pipeline SDP"
+
+      catalog: ${var.catalog}
+      target: ${var.schema}
+
+      # Fichiers source Spark Declarative Pipelines (Python + SQL)
+      libraries:
+        - file:
+            path: ../../src/pipelines/fidelisation/transformations/bronze.py
+        - file:
+            path: ../../src/pipelines/fidelisation/transformations/silver.py
+        - file:
+            path: ../../src/pipelines/fidelisation/transformations/gold.sql
+
+      serverless: true
+      continuous: false
+      development: true
+      photon: true
+      channel: current
+
+      configuration:
+        source_catalog: ${var.catalog}
+        source_schema: ${var.schema}
+
+      permissions:
+        - level: CAN_VIEW
+          group_name: "users"
+        - level: CAN_RUN
+          group_name: "users"

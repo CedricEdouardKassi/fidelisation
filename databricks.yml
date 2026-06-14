@@ -1,0 +1,34 @@
+# =============================================================================
+# Moteur de Fidélisation Intelligent - Declarative Automation Bundle
+# =============================================================================
+bundle:
+  name: fidelisation
+
+include:
+  - resources/**/*.yml
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      host: https://adb-1400176502464428.8.azuredatabricks.net
+    variables:
+      catalog: "training"
+      schema: "fidelisation_dev"
+
+  staging:
+    mode: development
+    workspace:
+      host: https://adb-1400176502464428.8.azuredatabricks.net
+    variables:
+      catalog: "training"
+      schema: "fidelisation_staging"
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-1400176502464428.8.azuredatabricks.net
+    variables:
+      catalog: "training"
+      schema: "fidelisation"

@@ -1,0 +1,11 @@
+variables:
+  catalog:
+    description: "Catalogue Unity Catalog cible"
+    default: "streamexp"
+  schema:
+    description: "Schéma cible pour les tables"
+    default: "fidelisation"
+  warehouse_id:
+    description: "ID du SQL Warehouse"
+    lookup:
+      warehouse: "dwless"
