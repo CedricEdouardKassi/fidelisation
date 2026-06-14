@@ -1,4 +1,9 @@
 # Databricks notebook source
+# DBTITLE 1,Installation des dépendances
+# MAGIC %pip install faker
+
+# COMMAND ----------
+
 # DBTITLE 1,Configuration et imports
 # =============================================================================
 # MOTEUR DE FIDÉLISATION INTELLIGENT — Génération de Données Synthétiques
@@ -15,7 +20,14 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import *
 import random
 from datetime import datetime, timedelta, date
+import unicodedata
 import numpy as np
+from faker import Faker
+
+fake = Faker("fr_FR")
+Faker.seed(42)
+random.seed(42)
+np.random.seed(42)
 
 # Paramètres injectés par le job (ou valeurs par défaut)
 dbutils.widgets.text("catalog", "training")
@@ -27,29 +39,31 @@ spark.sql(f"USE {CATALOG}.{SCHEMA}")
 
 print(f"✅ Cible: {CATALOG}.{SCHEMA}")
 
+
+def _ascii(s):
+    """Normalise un nom pour construire un identifiant email sans accents."""
+    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii").lower()
+
+
 # COMMAND ----------
 
 # DBTITLE 1,Génération des Commerciaux
 # =============================================================================
 # TABLE: commerciaux (20 commerciaux)
 # =============================================================================
-prenoms = ["Sophie", "Thomas", "Marie", "Pierre", "Julie", "Nicolas", "Laura", 
-           "Antoine", "Camille", "Maxime", "Emma", "Lucas", "Cléa", "Hugo",
-           "Inès", "Raphaël", "Manon", "Alexandre", "Jade", "Arthur"]
-noms = ["Dupont", "Martin", "Bernard", "Dubois", "Moreau", "Laurent", "Simon",
-        "Michel", "Lefebvre", "Leroy", "Roux", "David", "Bertrand", "Morel",
-        "Fournier", "Girard", "Bonnet", "Dupuis", "Lambert", "Fontaine"]
 regions = ["IDF", "IDF", "IDF", "IDF", "IDF", "Lyon", "Lyon", "Lyon",
            "Marseille", "Marseille", "Toulouse", "Toulouse", "Bordeaux", "Bordeaux",
            "Nantes", "Nantes", "Lille", "Lille", "Strasbourg", "Strasbourg"]
 
 commerciaux_data = []
 for i in range(20):
+    prenom = fake.first_name()
+    nom = fake.last_name()
     commerciaux_data.append({
         "commercial_id": f"COM-{i+1:03d}",
-        "prenom": prenoms[i],
-        "nom": noms[i],
-        "email": f"{prenoms[i].lower()}.{noms[i].lower()}@laposte.fr",
+        "prenom": prenom,
+        "nom": nom,
+        "email": f"{_ascii(prenom)}.{_ascii(nom)}@laposte.fr",
         "region": regions[i],
         "nb_clients_portefeuille": random.randint(15, 35),
         "objectif_renouvellement_mensuel": random.randint(8, 15),
@@ -67,20 +81,9 @@ df_commerciaux.show(5)
 # =============================================================================
 # TABLE: clients (500 clients B2B)
 # =============================================================================
-random.seed(42)
-np.random.seed(42)
-
 segments = ["PME", "ETI", "Grand Compte", "TPE", "Collectivité"]
-offres = ["Courrier Pro", "Colis Express", "Marketing Direct", "Logistique Intégrée", 
+offres = ["Courrier Pro", "Colis Express", "Marketing Direct", "Logistique Intégrée",
           "GED Numérique", "Affranchissement Connecté"]
-entreprises_prefixes = ["Groupe", "Société", "Entreprise", "Cabinet", "Ets", "SAS", "SARL"]
-entreprises_noms = ["Duval", "Mercier", "Gauthier", "Perrin", "Lemoine", "Chevalier",
-                    "Blanc", "Guerin", "Muller", "Henry", "Roussel", "Vincent", 
-                    "Masson", "Clement", "Garnier", "Faure", "Andre", "Marchand",
-                    "Renard", "Picard", "Brun", "Noel", "Riviere", "Arnaud",
-                    "Collet", "Legrand", "Maillard", "Philippe", "Bourgeois", "Lacroix"]
-villes = ["Paris", "Lyon", "Marseille", "Toulouse", "Bordeaux", "Nantes", 
-          "Lille", "Strasbourg", "Rennes", "Montpellier", "Nice", "Rouen"]
 
 clients_data = []
 for i in range(500):
@@ -89,21 +92,21 @@ for i in range(500):
                   "Grand Compte": (150000, 500000), "Collectivité": (30000, 150000)}
     val_min, val_max = valeur_map[segment]
     valeur_contrat = round(random.uniform(val_min, val_max), 2)
-    
+
     date_contrat = date(2023, 1, 1) + timedelta(days=random.randint(0, 900))
     duree_contrat_mois = random.choice([12, 24, 36])
     date_fin = date_contrat + timedelta(days=duree_contrat_mois * 30)
-    
+
     nps = round(random.gauss(7, 2), 1)
     nps = max(1, min(10, nps))
-    
+
     commercial_idx = i % 20
-    
+
     clients_data.append({
         "client_id": f"CLI-{i+1:04d}",
-        "raison_sociale": f"{random.choice(entreprises_prefixes)} {random.choice(entreprises_noms)}",
+        "raison_sociale": fake.company(),
         "segment": segment,
-        "ville": random.choice(villes),
+        "ville": fake.city(),
         "commercial_id": f"COM-{commercial_idx+1:03d}",
         "offre_actuelle": random.choice(offres),
         "valeur_contrat_annuel": valeur_contrat,
@@ -113,7 +116,7 @@ for i in range(500):
         "renouvellement_auto": random.choice([True, True, False]),
         "score_nps": nps,
         "anciennete_mois": random.randint(6, 120),
-        "nb_reclamations_12m": random.choices([0,0,0,1,1,2,3], k=1)[0],
+        "nb_reclamations_12m": random.choices([0, 0, 0, 1, 1, 2, 3], k=1)[0],
         "potentiel_upsell": round(random.uniform(0, valeur_contrat * 0.4), 2),
         "canal_prefere": random.choice(["telephone", "telephone", "telephone", "email", "email", "sms"]),
         "score_initial_manuel": random.randint(1, 5)
@@ -155,20 +158,20 @@ for i in range(5500):
     days_ago = int(np.random.exponential(90))
     days_ago = min(days_ago, 365)
     call_date = base_date - timedelta(days=days_ago)
-    
+
     hour_weights = [0.05, 0.15, 0.20, 0.15, 0.05, 0.10, 0.15, 0.10, 0.05]
     hours = [9, 10, 11, 12, 14, 15, 16, 17, 18]
     hour = random.choices(hours, weights=hour_weights, k=1)[0]
     minute = random.randint(0, 59)
     call_datetime = call_date.replace(hour=hour, minute=minute)
-    
+
     if call_datetime.weekday() >= 5:
         continue
-    
+
     resultat = random.choice(resultats)
     duree = 0 if resultat in ["absent", "occupé"] else random.randint(30, 900)
     direction = random.choices(["sortant", "sortant", "sortant", "entrant"], k=1)[0]
-    
+
     appels_data.append({
         "appel_id": f"APP-{i+1:06d}",
         "client_id": f"CLI-{random.randint(1, 500):04d}",
@@ -176,7 +179,7 @@ for i in range(5500):
         "date_appel": str(call_datetime.date()),
         "heure_appel": f"{hour:02d}:{minute:02d}",
         "heure_slot": hour,
-        "jour_semaine": ["Lun","Mar","Mer","Jeu","Ven"][call_datetime.weekday()],
+        "jour_semaine": ["Lun", "Mar", "Mer", "Jeu", "Ven"][call_datetime.weekday()],
         "direction": direction,
         "resultat": resultat,
         "duree_secondes": duree,
@@ -203,10 +206,10 @@ for com_id in range(1, 21):
         jour = today + timedelta(days=day_offset)
         if jour.weekday() >= 5:
             continue
-        
-        jour_semaine = ["Lun","Mar","Mer","Jeu","Ven"][jour.weekday()]
+
+        jour_semaine = ["Lun", "Mar", "Mer", "Jeu", "Ven"][jour.weekday()]
         is_jour_entrant = random.random() < 0.3
-        
+
         for slot in [9, 10, 11, 14, 15, 16, 17]:
             if is_jour_entrant:
                 disponible = False
@@ -217,7 +220,7 @@ for com_id in range(1, 21):
             else:
                 disponible = True
                 motif = ""
-            
+
             agenda_data.append({
                 "commercial_id": f"COM-{com_id:03d}",
                 "date_slot": str(jour),
@@ -247,7 +250,7 @@ for client in clients_list:
     client_id = client["client_id"]
     date_fin = datetime.strptime(client["date_fin_contrat"], "%Y-%m-%d").date()
     jours_avant_fin = (date_fin - today).days
-    
+
     if 0 <= jours_avant_fin <= 90:
         if jours_avant_fin <= 15:
             urgence = "J-15"
@@ -261,7 +264,7 @@ for client in clients_list:
         else:
             urgence = "J-90"
             score_urgence_pts = 1
-        
+
         signaux_data.append({
             "client_id": client_id,
             "type_signal": "echeance_contrat",
@@ -275,7 +278,7 @@ for client in clients_list:
             "saisonnalite_detectee": random.choice([True, False, False]),
             "score_ml_propension": round(random.uniform(0.2, 0.95), 3)
         })
-    
+
     if client["score_nps"] < 5:
         signaux_data.append({
             "client_id": client_id,
@@ -290,7 +293,7 @@ for client in clients_list:
             "saisonnalite_detectee": False,
             "score_ml_propension": round(random.uniform(0.1, 0.5), 3)
         })
-    
+
     if jours_avant_fin > 90 and random.random() < 0.15:
         signaux_data.append({
             "client_id": client_id,
@@ -350,7 +353,7 @@ df_heatmap.show()
 print("\n" + "="*60)
 print(" MOTEUR DE FIDÉLISATION — Données générées avec succès")
 print("="*60)
-tables = ["commerciaux", "clients", "historique_appels", "agenda_commerciaux", 
+tables = ["commerciaux", "clients", "historique_appels", "agenda_commerciaux",
           "signaux_contrats", "heatmap_joignabilite"]
 for t in tables:
     count = spark.table(f"{CATALOG}.{SCHEMA}.{t}").count()
