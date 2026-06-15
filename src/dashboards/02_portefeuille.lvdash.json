@@ -45,7 +45,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "ca_segment",
+                  "datasetName": "ca_segment",
                   "fields": [
                     { "name": "segment",    "expression": "`segment`" },
                     { "name": "ca_k_eur",   "expression": "`ca_k_eur`" },
@@ -76,7 +76,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "nps_dist",
+                  "datasetName": "nps_dist",
                   "fields": [
                     { "name": "nps_categorie", "expression": "`nps_categorie`" },
                     { "name": "nb_clients",    "expression": "`nb_clients`" }
@@ -104,7 +104,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "echeances",
+                  "datasetName": "echeances",
                   "fields": [
                     { "name": "fenetre_echeance", "expression": "`fenetre_echeance`" },
                     { "name": "nb_clients",       "expression": "`nb_clients`" }
@@ -134,7 +134,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "echeances",
+                  "datasetName": "echeances",
                   "fields": [
                     { "name": "fenetre_echeance", "expression": "`fenetre_echeance`" },
                     { "name": "ca_k_eur",         "expression": "`ca_k_eur`" }
@@ -164,7 +164,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "clients_risque",
+                  "datasetName": "clients_risque",
                   "fields": [
                     { "name": "raison_sociale",       "expression": "`raison_sociale`" },
                     { "name": "segment",              "expression": "`segment`" },
@@ -202,7 +202,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "perf_commercial",
+                  "datasetName": "perf_commercial",
                   "fields": [
                     { "name": "commercial_nom",  "expression": "`commercial_nom`" },
                     { "name": "ca_k_eur",        "expression": "`ca_k_eur`" },

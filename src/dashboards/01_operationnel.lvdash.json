@@ -40,7 +40,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "kpi_jour",
+                  "datasetName": "kpi_jour",
                   "fields": [
                     { "name": "nb_clients_a_appeler", "expression": "`nb_clients_a_appeler`" }
                   ],
@@ -66,7 +66,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "kpi_jour",
+                  "datasetName": "kpi_jour",
                   "fields": [
                     { "name": "nb_contrats_j30", "expression": "`nb_contrats_j30`" }
                   ],
@@ -92,7 +92,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "kpi_jour",
+                  "datasetName": "kpi_jour",
                   "fields": [
                     { "name": "taux_joignabilite_moyen", "expression": "`taux_joignabilite_moyen`" }
                   ],
@@ -118,7 +118,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "kpi_jour",
+                  "datasetName": "kpi_jour",
                   "fields": [
                     { "name": "ca_potentiel_en_jeu", "expression": "`ca_potentiel_en_jeu`" }
                   ],
@@ -144,7 +144,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "heatmap_joign",
+                  "datasetName": "heatmap_joign",
                   "fields": [
                     { "name": "jour_semaine", "expression": "`jour_semaine`" },
                     { "name": "heure_label",  "expression": "`heure_label`" },
@@ -174,7 +174,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "ca_region",
+                  "datasetName": "ca_region",
                   "fields": [
                     { "name": "region",     "expression": "`region`" },
                     { "name": "ca_k_eur",   "expression": "`ca_k_eur`" },
@@ -205,7 +205,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "top_clients",
+                  "datasetName": "top_clients",
                   "fields": [
                     { "name": "raison_sociale",      "expression": "`raison_sociale`" },
                     { "name": "segment",             "expression": "`segment`" },

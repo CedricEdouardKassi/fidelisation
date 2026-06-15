@@ -45,7 +45,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "heatmap_reel",
+                  "datasetName": "heatmap_reel",
                   "fields": [
                     { "name": "jour_semaine",      "expression": "`jour_semaine`" },
                     { "name": "heure_label",       "expression": "`heure_label`" },
@@ -75,7 +75,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "heatmap_modele",
+                  "datasetName": "heatmap_modele",
                   "fields": [
                     { "name": "jour_semaine",     "expression": "`jour_semaine`" },
                     { "name": "heure_label",      "expression": "`heure_label`" },
@@ -118,7 +118,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "tendance_mensuelle",
+                  "datasetName": "tendance_mensuelle",
                   "fields": [
                     { "name": "mois",              "expression": "`mois`" },
                     { "name": "nb_appels",         "expression": "`nb_appels`" },
@@ -152,7 +152,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "perf_canal",
+                  "datasetName": "perf_canal",
                   "fields": [
                     { "name": "canal",             "expression": "`canal`" },
                     { "name": "nb_appels",         "expression": "`nb_appels`" },
@@ -183,7 +183,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "perf_canal",
+                  "datasetName": "perf_canal",
                   "fields": [
                     { "name": "canal",     "expression": "`canal`" },
                     { "name": "nb_appels", "expression": "`nb_appels`" }
@@ -211,7 +211,7 @@
               {
                 "name": "main",
                 "query": {
-                  "dataset_name": "perf_commerciaux",
+                  "datasetName": "perf_commerciaux",
                   "fields": [
                     { "name": "commercial_id",       "expression": "`commercial_id`" },
                     { "name": "nb_appels",           "expression": "`nb_appels`" },
