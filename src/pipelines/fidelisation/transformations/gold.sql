@@ -22,6 +22,7 @@ WITH
 scored AS (
   SELECT
     s.*,
+    c.region,
     ROUND(
         (s.score_urgence            * 0.35)
       + (s.score_joignabilite       * 0.30)
